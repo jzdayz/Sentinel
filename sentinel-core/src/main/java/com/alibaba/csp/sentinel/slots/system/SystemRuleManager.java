@@ -297,6 +297,7 @@ public final class SystemRuleManager {
         }
 
         // for inbound traffic only
+        // 使用于入站的流量
         if (resourceWrapper.getEntryType() != EntryType.IN) {
             return;
         }

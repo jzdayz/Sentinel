@@ -118,15 +118,19 @@ public class ContextUtil {
     }
 
     protected static Context trueEnter(String name, String origin) {
+        // 线程绑定的context
         Context context = contextHolder.get();
         if (context == null) {
             Map<String, DefaultNode> localCacheNameMap = contextNameNodeMap;
             DefaultNode node = localCacheNameMap.get(name);
             if (node == null) {
+                // 一个程序，最多可以建立2000个context，再多的话，就是nullContext
                 if (localCacheNameMap.size() > Constants.MAX_CONTEXT_NAME_SIZE) {
+                    // nullContext设置
                     setNullContext();
                     return NULL_CONTEXT;
                 } else {
+                    // 重入锁，保证hashMap的安全性
                     LOCK.lock();
                     try {
                         node = contextNameNodeMap.get(name);

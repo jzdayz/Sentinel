@@ -31,17 +31,19 @@ final class AuthorityRuleChecker {
         String requester = context.getOrigin();
 
         // Empty origin or empty limitApp will pass.
+        // 请求资源的标识，或者配置的资源名称为空的话，不用检测，直接通过
         if (StringUtil.isEmpty(requester) || StringUtil.isEmpty(rule.getLimitApp())) {
             return true;
         }
-
         // Do exact match with origin name.
         int pos = rule.getLimitApp().indexOf(requester);
+        // 配置的资源名，是否包含在请求名中
         boolean contain = pos > -1;
 
         if (contain) {
             boolean exactlyMatch = false;
             String[] appArray = rule.getLimitApp().split(",");
+            // 逗号分隔，解析配置的资源名，如果有匹配的
             for (String app : appArray) {
                 if (requester.equals(app)) {
                     exactlyMatch = true;
@@ -53,10 +55,11 @@ final class AuthorityRuleChecker {
         }
 
         int strategy = rule.getStrategy();
+        // 黑名单 && 请求名匹配在配置的资源名
         if (strategy == RuleConstant.AUTHORITY_BLACK && contain) {
             return false;
         }
-
+        // 白名单 && 请求名不匹配在配置的资源名
         if (strategy == RuleConstant.AUTHORITY_WHITE && !contain) {
             return false;
         }

@@ -116,6 +116,7 @@ public class CtSph implements Sph {
 
     private Entry entryWithPriority(ResourceWrapper resourceWrapper, int count, boolean prioritized, Object... args)
         throws BlockException {
+        // 从threadLocal获取context
         Context context = ContextUtil.getContext();
         if (context instanceof NullContext) {
             // The {@link NullContext} indicates that the amount of context has exceeded the threshold,
@@ -125,10 +126,12 @@ public class CtSph implements Sph {
 
         if (context == null) {
             // Using default context.
+            // 建立一个默认的context
             context = InternalContextUtil.internalEnter(Constants.CONTEXT_DEFAULT_NAME);
         }
 
         // Global switch is close, no rule checking will do.
+        // 全局开关
         if (!Constants.ON) {
             return new CtEntry(resourceWrapper, null, context);
         }

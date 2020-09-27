@@ -37,6 +37,7 @@ public class AuthoritySlot extends AbstractLinkedProcessorSlot<DefaultNode> {
     @Override
     public void entry(Context context, ResourceWrapper resourceWrapper, DefaultNode node, int count, boolean prioritized, Object... args)
         throws Throwable {
+        // 白黑名单检测
         checkBlackWhiteAuthority(resourceWrapper, context);
         fireEntry(context, resourceWrapper, node, count, prioritized, args);
     }
@@ -47,19 +48,21 @@ public class AuthoritySlot extends AbstractLinkedProcessorSlot<DefaultNode> {
     }
 
     void checkBlackWhiteAuthority(ResourceWrapper resource, Context context) throws AuthorityException {
+        // 所有的白黑名单的配置
         Map<String, Set<AuthorityRule>> authorityRules = AuthorityRuleManager.getAuthorityRules();
 
         if (authorityRules == null) {
             return;
         }
-
+        // 当前资源的白黑名单配置
         Set<AuthorityRule> rules = authorityRules.get(resource.getName());
         if (rules == null) {
             return;
         }
-
+        // 每个规则都检测一遍
         for (AuthorityRule rule : rules) {
             if (!AuthorityRuleChecker.passCheck(rule, context)) {
+                // 非法的权限
                 throw new AuthorityException(context.getOrigin(), rule);
             }
         }
