@@ -71,6 +71,7 @@ public class DegradeSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
 
         if (curEntry.getBlockError() == null) {
             // passed request
+            // 退出时，熔断器进行判断，是否需要改变熔断器的状态(熔断，非熔断，半熔断)
             for (CircuitBreaker circuitBreaker : circuitBreakers) {
                 circuitBreaker.onRequestComplete(context);
             }

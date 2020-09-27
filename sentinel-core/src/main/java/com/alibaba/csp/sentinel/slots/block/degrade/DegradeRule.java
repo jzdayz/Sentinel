@@ -81,6 +81,7 @@ public class DegradeRule extends AbstractRule {
      */
     private double slowRatioThreshold = 1.0d;
 
+    // 统计间隔时间
     private int statIntervalMs = 1000;
 
     public int getGrade() {

@@ -29,6 +29,8 @@ import com.alibaba.csp.sentinel.util.AssertUtil;
 import com.alibaba.csp.sentinel.util.TimeUtil;
 
 /**
+ *
+ * 根据响应时间进行熔断
  * @author Eric Zhao
  * @since 1.8.0
  */

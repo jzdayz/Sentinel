@@ -29,12 +29,16 @@ public interface CircuitBreaker {
     /**
      * Get the associated circuit breaking rule.
      *
+     *  获取熔断规则
+     *
      * @return associated circuit breaking rule
      */
     DegradeRule getRule();
 
     /**
      * Acquires permission of an invocation only if it is available at the time of invoking.
+     *
+     *  检查熔断器状态，看看请求是否可以通过
      *
      * @param context context of current invocation
      * @return {@code true} if permission was acquired and {@code false} otherwise
@@ -44,6 +48,8 @@ public interface CircuitBreaker {
     /**
      * Get current state of the circuit breaker.
      *
+     *  当前熔断状态
+     *
      * @return current state of the circuit breaker
      */
     State currentState();
@@ -51,6 +57,8 @@ public interface CircuitBreaker {
     /**
      * <p>Record a completed request with the context and handle state transformation of the circuit breaker.</p>
      * <p>Called when a <strong>passed</strong> invocation finished.</p>
+     *
+     *  一个请求完成的时候调用的代码(例如记录异常数，记录响应时间，根据具体的实现来做)
      *
      * @param context context of current invocation
      */

@@ -30,6 +30,8 @@ import static com.alibaba.csp.sentinel.slots.block.RuleConstant.DEGRADE_GRADE_EX
 import static com.alibaba.csp.sentinel.slots.block.RuleConstant.DEGRADE_GRADE_EXCEPTION_COUNT;
 
 /**
+ *
+ *  根据异常相关的指标(异常数，异常率)进行熔断
  * @author Eric Zhao
  * @since 1.8.0
  */
@@ -47,7 +49,9 @@ public class ExceptionCircuitBreaker extends AbstractCircuitBreaker {
 
     ExceptionCircuitBreaker(DegradeRule rule, LeapArray<SimpleErrorCounter> stat) {
         super(rule);
+        // 熔断策略
         this.strategy = rule.getGrade();
+        // 必须是异常数或者异常率
         boolean modeOk = strategy == DEGRADE_GRADE_EXCEPTION_RATIO || strategy == DEGRADE_GRADE_EXCEPTION_COUNT;
         AssertUtil.isTrue(modeOk, "rule strategy should be error-ratio or error-count");
         AssertUtil.notNull(stat, "stat cannot be null");
@@ -64,35 +68,43 @@ public class ExceptionCircuitBreaker extends AbstractCircuitBreaker {
 
     @Override
     public void onRequestComplete(Context context) {
+        // 当前条目
         Entry entry = context.getCurEntry();
         if (entry == null) {
             return;
         }
+        // 异常信息
         Throwable error = entry.getError();
         SimpleErrorCounter counter = stat.currentWindow().value();
         if (error != null) {
+            // 记录异常数
             counter.getErrorCount().add(1);
         }
+        // 记录总数
         counter.getTotalCount().add(1);
 
         handleStateChangeWhenThresholdExceeded(error);
     }
 
     private void handleStateChangeWhenThresholdExceeded(Throwable error) {
+        // 如果已经是熔断状态
         if (currentState.get() == State.OPEN) {
             return;
         }
-        
+        // 版熔断状态
         if (currentState.get() == State.HALF_OPEN) {
             // In detecting request
+            // 没有异常信息
             if (error == null) {
+                // 将半熔断修改为正常状态
                 fromHalfOpenToClose();
             } else {
+                // 将半熔断状态修改为熔断状态
                 fromHalfOpenToOpen(1.0d);
             }
             return;
         }
-        
+
         List<SimpleErrorCounter> counters = stat.values();
         long errCount = 0;
         long totalCount = 0;
@@ -100,15 +112,21 @@ public class ExceptionCircuitBreaker extends AbstractCircuitBreaker {
             errCount += counter.errorCount.sum();
             totalCount += counter.totalCount.sum();
         }
+        // 如果请求总数达不到最小要求
         if (totalCount < minRequestAmount) {
             return;
         }
+        // 先是异常数
         double curCount = errCount;
+        // 如果策略是异常率
         if (strategy == DEGRADE_GRADE_EXCEPTION_RATIO) {
             // Use errorRatio
+            // 异常率 = 异常数/请求总数
             curCount = errCount * 1.0d / totalCount;
         }
+        // 如果异常率大于阈值
         if (curCount > threshold) {
+            // 变成熔断状态
             transformToOpen(curCount);
         }
     }

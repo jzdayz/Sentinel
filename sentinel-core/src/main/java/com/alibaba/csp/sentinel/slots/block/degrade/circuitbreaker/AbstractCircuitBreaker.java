@@ -106,14 +106,17 @@ public abstract class AbstractCircuitBreaker implements CircuitBreaker {
 
     protected boolean fromOpenToHalfOpen(Context context) {
         if (currentState.compareAndSet(State.OPEN, State.HALF_OPEN)) {
+            // 唤醒观察者，这里可以实现一些自己的逻辑。
             notifyObservers(State.OPEN, State.HALF_OPEN, null);
             Entry entry = context.getCurEntry();
+            // 这里当entry退出的时候执行逻辑
             entry.whenTerminate(new BiConsumer<Context, Entry>() {
                 @Override
                 public void accept(Context context, Entry entry) {
                     // Note: This works as a temporary workaround for https://github.com/alibaba/Sentinel/issues/1638
                     // Without the hook, the circuit breaker won't recover from half-open state in some circumstances
                     // when the request is actually blocked by upcoming rules (not only degrade rules).
+                    // 如果有错误，则将半熔断状态，转为熔断状态
                     if (entry.getBlockError() != null) {
                         // Fallback to OPEN due to detecting request is blocked
                         currentState.compareAndSet(State.HALF_OPEN, State.OPEN);
@@ -132,9 +135,14 @@ public abstract class AbstractCircuitBreaker implements CircuitBreaker {
         }
     }
 
+    /**
+     *  半熔断 -> 熔断
+     */
     protected boolean fromHalfOpenToOpen(double snapshotValue) {
         if (currentState.compareAndSet(State.HALF_OPEN, State.OPEN)) {
+            // 修改下次尝试时间
             updateNextRetryTimestamp();
+            // 观察者
             notifyObservers(State.HALF_OPEN, State.OPEN, snapshotValue);
             return true;
         }
@@ -142,8 +150,11 @@ public abstract class AbstractCircuitBreaker implements CircuitBreaker {
     }
 
     protected boolean fromHalfOpenToClose() {
+        // 半熔断 -> 正常
         if (currentState.compareAndSet(State.HALF_OPEN, State.CLOSED)) {
+            // 重置一下各种记录，不要让上一次熔断信息，影响到下次的熔断
             resetStat();
+            // 唤醒观察者
             notifyObservers(State.HALF_OPEN, State.CLOSED, null);
             return true;
         }
