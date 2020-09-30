@@ -65,6 +65,7 @@ public class ResponseTimeCircuitBreaker extends AbstractCircuitBreaker {
     @Override
     public void onRequestComplete(Context context) {
         SlowRequestCounter counter = slidingCounter.currentWindow().value();
+        // 当前条目
         Entry entry = context.getCurEntry();
         if (entry == null) {
             return;
@@ -73,7 +74,9 @@ public class ResponseTimeCircuitBreaker extends AbstractCircuitBreaker {
         if (completeTime <= 0) {
             completeTime = TimeUtil.currentTimeMillis();
         }
+        // 总响应耗时
         long rt = completeTime - entry.getCreateTimestamp();
+        // 大于最大允许响应时间
         if (rt > maxAllowedRt) {
             counter.slowCount.add(1);
         }
@@ -83,16 +86,19 @@ public class ResponseTimeCircuitBreaker extends AbstractCircuitBreaker {
     }
 
     private void handleStateChangeWhenThresholdExceeded(long rt) {
+        // 熔断状态
         if (currentState.get() == State.OPEN) {
             return;
         }
-        
+        // 半熔断状态
         if (currentState.get() == State.HALF_OPEN) {
             // In detecting request
             // TODO: improve logic for half-open recovery
+            // 如果响应时间大于最大允许时间，则从半熔断转为熔断状态
             if (rt > maxAllowedRt) {
                 fromHalfOpenToOpen(1.0d);
             } else {
+                // 停止熔断
                 fromHalfOpenToClose();
             }
             return;

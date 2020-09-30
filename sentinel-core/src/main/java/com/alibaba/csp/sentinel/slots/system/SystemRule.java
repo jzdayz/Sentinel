@@ -31,6 +31,8 @@ import com.alibaba.csp.sentinel.slots.block.AbstractRule;
  * To set the threshold appropriately, performance test may be needed.
  * </p>
  *
+ *  根据系统相关指标进行规则编写，QPS，平均响应时间，最大线程数，CPU使用率，系统负载
+ *
  * @author jialiang.linjl
  * @author Carpenter Lee
  * @see SystemRuleManager

@@ -18,6 +18,8 @@ package com.alibaba.csp.sentinel.slots.block;
 /**
  * Abstract rule entity.
  *
+ *  规则的抽象
+ *
  * @author youji.zj
  * @author Eric Zhao
  */

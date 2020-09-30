@@ -42,6 +42,8 @@ import java.util.Objects;
  * </li>
  * </ul>
  *
+ *  熔断规则
+ *
  * @author jialiang.linjl
  * @author Eric Zhao
  */
