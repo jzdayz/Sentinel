@@ -284,6 +284,8 @@ public final class SystemRuleManager {
     /**
      * Apply {@link SystemRule} to the resource. Only inbound traffic will be checked.
      *
+     *  检测系统相关的指标 QPS,THREAD,RT,CPU USAGE
+     *
      * @param resourceWrapper the resource.
      * @throws BlockException when any system rule's threshold is exceeded.
      */
