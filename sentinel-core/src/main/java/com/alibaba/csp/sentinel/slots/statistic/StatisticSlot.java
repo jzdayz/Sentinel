@@ -59,7 +59,9 @@ public class StatisticSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
             fireEntry(context, resourceWrapper, node, count, prioritized, args);
 
             // Request passed, add thread count and pass count.
+            // 请求成功，则增加线程数量
             node.increaseThreadNum();
+            // 增加请求数量
             node.addPassRequest(count);
 
             if (context.getCurEntry().getOriginNode() != null) {
@@ -70,7 +72,9 @@ public class StatisticSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
 
             if (resourceWrapper.getEntryType() == EntryType.IN) {
                 // Add count for global inbound entry node for global statistics.
+                // 全局线程数量
                 Constants.ENTRY_NODE.increaseThreadNum();
+                // 全局请求数量
                 Constants.ENTRY_NODE.addPassRequest(count);
             }
 
@@ -125,13 +129,14 @@ public class StatisticSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
     @Override
     public void exit(Context context, ResourceWrapper resourceWrapper, int count, Object... args) {
         Node node = context.getCurNode();
-
+        // 如果没有被限流
         if (context.getCurEntry().getBlockError() == null) {
             // Calculate response time (use completeStatTime as the time of completion).
             long completeStatTime = TimeUtil.currentTimeMillis();
             context.getCurEntry().setCompleteTimestamp(completeStatTime);
+            // 计算响应时间
             long rt = completeStatTime - context.getCurEntry().getCreateTimestamp();
-
+            // 获取ERROR
             Throwable error = context.getCurEntry().getError();
 
             // Record response time and success count.
@@ -155,7 +160,9 @@ public class StatisticSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
         if (node == null) {
             return;
         }
+        // 记录响应时间和成功数量
         node.addRtAndSuccess(rt, batchCount);
+        // 减少线程数
         node.decreaseThreadNum();
 
         if (error != null && !(error instanceof BlockException)) {

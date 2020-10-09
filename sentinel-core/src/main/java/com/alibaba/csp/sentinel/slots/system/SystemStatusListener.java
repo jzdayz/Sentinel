@@ -51,6 +51,7 @@ public class SystemStatusListener implements Runnable {
     public void run() {
         try {
             OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+            // cpu最近一分钟平均负载
             currentLoad = osBean.getSystemLoadAverage();
 
             /*
@@ -61,22 +62,27 @@ public class SystemStatusListener implements Runnable {
              * observed. All values between 0.0 and 1.0 are possible depending of the activities going on in the
              * system. If the system recent cpu usage is not available, the method returns a negative value.
              */
+            // cpu使用率 1.0 为100%
             double systemCpuUsage = osBean.getSystemCpuLoad();
 
             // calculate process cpu usage to support application running in container environment
             RuntimeMXBean runtimeBean = ManagementFactory.getPlatformMXBean(RuntimeMXBean.class);
+            // java虚拟机的cpu使用时间
             long newProcessCpuTime = osBean.getProcessCpuTime();
+            // java虚拟机的启动时间
             long newProcessUpTime = runtimeBean.getUptime();
+            // 可用线程数，跟Runtime#availableProcessors()类似
             int cpuCores = osBean.getAvailableProcessors();
             long processCpuTimeDiffInMs = TimeUnit.NANOSECONDS
                     .toMillis(newProcessCpuTime - processCpuTime);
             long processUpTimeDiffInMs = newProcessUpTime - processUpTime;
+            // 根据公式算出cpu使用  cpu使用时间/启动时间/cpu使用核心
             double processCpuUsage = (double) processCpuTimeDiffInMs / processUpTimeDiffInMs / cpuCores;
             processCpuTime = newProcessCpuTime;
             processUpTime = newProcessUpTime;
-
+            // 取jmx和自定义算出的最大值
             currentCpuUsage = Math.max(processCpuUsage, systemCpuUsage);
-
+            // 如果负载大于阈值，则log打印
             if (currentLoad > SystemRuleManager.getSystemLoadThreshold()) {
                 writeSystemStatusLog();
             }
